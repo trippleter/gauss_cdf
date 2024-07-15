@@ -1,66 +1,40 @@
-## Foundry
+## Gaussian CDF in EVM
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This code uses github.com/errcw/gaussian in order to estimate a Gaussian CDF in solidity.
 
-Foundry consists of:
-
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+**test/GaussCDF.t.sol - test the implementation**
+```
+forge test -vv
 ```
 
-### Test
+**src/GaussCDF.sol - code of the cdf implementation**
 
-```shell
-$ forge test
+**generateTests.js - generate more tests (erases previous ones)**
+```
+node generateTests.js
 ```
 
-### Format
+**tests.txt - copy-paste them into test/GaussCDF.t.sol to run more tests**
 
-```shell
-$ forge fmt
+
+***errcw/gaussian***
+
+My code implements these functions considering potential under/overflows and 18 decimal fixed point parameters x, μ, σ.
+
+e^x is estimated using taylor series.
+
 ```
+var erfc = function(x) {
+    var z = Math.abs(x);
+    var t = 1 / (1 + z / 2);
+    var r = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 +
+            t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 +
+            t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 +
+            t * (-0.82215223 + t * 0.17087277)))))))))
+    return x >= 0 ? r : 2 - r;
+};
 
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+Gaussian.prototype.cdf = function(x) {
+    return 0.5 * erfc(-(x - this.mean) / (this.standardDeviation * Math.sqrt(2)));
+};
 ```
